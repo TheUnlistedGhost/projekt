@@ -22,6 +22,7 @@ export default class CorronaBusterScene extends Phaser.Scene{
         this.score = 0;
         this.lifeLabel = undefined;
         this.life = 3;
+        this.handsanitizer = undefined;
     }
     preload(){
         this.load.image('background', 'image/bg_layer1.png')
@@ -39,7 +40,13 @@ export default class CorronaBusterScene extends Phaser.Scene{
             frameWidth: 16,
             frameHeight: 16,
         })
-        
+        this.load.image('handsanitizer', 'image/handsanitizer.png')
+        //Audio
+        this.load.audio('bg_sound', 'sfx/AloneAgainst Enemy.ogg')
+        this.load.audio('laser', 'sfx/sfx_laser.ogg')
+        this.load.audio('destroy_sound', 'sfx/destroy.mp3')
+        this.load.audio('hs_sound', 'sfx/handsanitizer.mp3')
+        this.load.audio('gameover_sound', 'sfx/gameover.wav')
     }
     create(){
         const gameWidth = this.scale.width*0.5
@@ -96,6 +103,25 @@ export default class CorronaBusterScene extends Phaser.Scene{
             this.player,
             this.enemies,
             this.decreaseLife,
+            null,
+            this
+        )
+        //untuk memunculkan hand sanitizer
+        this.handsanitizer = this.physics.add.group({
+            classType: FallingObject,
+            runChildUpdate: true
+        })
+        this.time.addEvent({
+            delay: 10000,
+            callback: this.spawnHandsanitizer,
+            callbackScope: this,
+            loop: true
+        })
+        //overlap
+        this.physics.add.overlap(
+            this.player,
+            this.handsanitizer,
+            this.increaseLife,
             null,
             this
         )
@@ -169,6 +195,7 @@ export default class CorronaBusterScene extends Phaser.Scene{
             if (laser) {
                 laser.fire(this.player.x, this.player.y)
                 this.lastFired = time + 500
+                this.sound.play('laser')
             }
         }
         
@@ -232,6 +259,26 @@ export default class CorronaBusterScene extends Phaser.Scene{
             player.setTint(0xff0000).setAlpha(0.2)
         }else if (this.life == 0) {
             this.scene.start('over-scene',{score:this.score})
+        }
+    }
+    spawnHandsanitizer() {
+        const config = {
+            speed: 60,
+            rotation: 0
+        }
+        // @ts-ignore
+        const handsanitizer = this.handsanitizer.get
+        (0, 0, 'handsanitizer', config)
+        const positionX = Phaser.Math.Between(70, 330)
+        if (handsanitizer) {
+            handsanitizer.spawn(positionX)
+        }
+    }
+    increaseLife(player, handsanitizer) {
+        handsanitizer.die()
+        this.life++
+        if (this.life >= 3) {
+            player.clearTint().setAlpha(2)
         }
     }
 }
