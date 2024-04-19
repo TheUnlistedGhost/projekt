@@ -23,6 +23,7 @@ export default class CorronaBusterScene extends Phaser.Scene{
         this.lifeLabel = undefined;
         this.life = 3;
         this.handsanitizer = undefined;
+        this.backsound = undefined;
     }
     preload(){
         this.load.image('background', 'image/bg_layer1.png')
@@ -44,7 +45,7 @@ export default class CorronaBusterScene extends Phaser.Scene{
         //Audio
         this.load.audio('bg_sound', 'sfx/AloneAgainst Enemy.ogg')
         this.load.audio('laser', 'sfx/sfx_laser.ogg')
-        this.load.audio('destroy_sound', 'sfx/destroy.mp3')
+        this.load.audio('destroy', 'sfx/destroy.mp3')
         this.load.audio('hs_sound', 'sfx/handsanitizer.mp3')
         this.load.audio('gameover_sound', 'sfx/gameover.wav')
     }
@@ -125,6 +126,13 @@ export default class CorronaBusterScene extends Phaser.Scene{
             null,
             this
         )
+        //bgsound
+        this.backsound = this.sound.add('bg_sound')
+        var soundConfig={
+            loop: true,
+            volume: 0.5,
+        }
+        this.backsound.play(soundConfig)
     }
     update(time){
         this.cloud.children.iterate((child) => {
@@ -249,6 +257,7 @@ export default class CorronaBusterScene extends Phaser.Scene{
         laser.die()
         enemy.die()
         this.score += 10;
+        this.sound.play('destroy')
     }
     decreaseLife(player, enemy){
         enemy.die()
@@ -258,6 +267,8 @@ export default class CorronaBusterScene extends Phaser.Scene{
         }else if (this.life == 1){
             player.setTint(0xff0000).setAlpha(0.2)
         }else if (this.life == 0) {
+            this.sound.stopAll()
+            this.sound.play('gameover_sound')
             this.scene.start('over-scene',{score:this.score})
         }
     }
